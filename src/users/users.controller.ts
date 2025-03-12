@@ -37,19 +37,38 @@ export class UsersController {
 
   @Post()
   @ApiOperation({
-    summary: 'Create user',
-    description:
-      'Creates a new user in the system. Email must be unique and password must be at least 8 characters long.',
+    summary: 'Create a new user',
+    description: `Creates a new user in the system with the provided data.
+    
+Requirements:
+- Email must be unique
+- Password must be at least 8 characters long
+- Password must contain at least one uppercase letter, one lowercase letter, and one number
+    
+Notes:
+- The password will be automatically hashed before storage
+- The response will not include the password field`,
   })
   @ApiBody({
     type: CreateUserDto,
-    description: 'User data to create',
+    description: 'User data for creation',
     examples: {
-      default: {
+      valid: {
+        summary: 'Valid user data',
+        description: 'Example of valid user data that meets all requirements',
         value: {
           name: 'John Doe',
           email: 'john@example.com',
           password: 'strongP@ssw0rd',
+        },
+      },
+      invalid: {
+        summary: 'Invalid user data',
+        description: 'Example of invalid user data that will fail validation',
+        value: {
+          name: 'Jo',
+          email: 'invalid-email',
+          password: 'weak',
         },
       },
     },
@@ -57,15 +76,44 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
-    type: UserResponseSchema,
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(UserResponseSchema) },
+        {
+          example: {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'John Doe',
+            email: 'john@example.com',
+            createdAt: '2025-03-12T19:01:37.000Z',
+            updatedAt: '2025-03-12T19:01:37.000Z',
+          },
+        },
+      ],
+    },
   })
   @ApiResponse({
     status: 422,
-    description: 'Email is already in use',
+    description: 'Validation error or email already in use',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 422 },
+        message: { type: 'string', example: 'Email is already in use' },
+        error: { type: 'string', example: 'Unprocessable Entity' },
+      },
+    },
   })
   @ApiResponse({
     status: 500,
     description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error creating user' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
   })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     try {
@@ -80,35 +128,74 @@ export class UsersController {
 
   @Get()
   @ApiOperation({
-    summary: 'List users',
-    description:
-      'Returns a paginated list of users. By default, returns the first 10 users.',
+    summary: 'List all users',
+    description: `Returns a paginated list of users.
+    
+Pagination:
+- Uses cursor-based pagination
+- Default page size is 10 users
+- Maximum page size is 100 users
+    
+Notes:
+- Users are ordered by creation date (newest first)
+- Passwords are never included in the response
+- Results can be empty if no users match the criteria`,
   })
   @ApiQuery({
     name: 'skip',
-    description: 'Number of records to skip',
+    description: 'Number of records to skip (offset)',
     required: false,
     type: Number,
     example: 0,
+    schema: {
+      minimum: 0,
+      default: 0,
+    },
   })
   @ApiQuery({
     name: 'take',
-    description: 'Number of records to return',
+    description: 'Number of records to return (limit)',
     required: false,
     type: Number,
     example: 10,
+    schema: {
+      minimum: 1,
+      maximum: 100,
+      default: 10,
+    },
   })
   @ApiResponse({
     status: 200,
     description: 'Users list retrieved successfully',
     schema: {
       type: 'array',
-      items: { $ref: getSchemaPath(UserResponseSchema) },
+      items: {
+        allOf: [
+          { $ref: getSchemaPath(UserResponseSchema) },
+          {
+            example: {
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              name: 'John Doe',
+              email: 'john@example.com',
+              createdAt: '2025-03-12T19:01:37.000Z',
+              updatedAt: '2025-03-12T19:01:37.000Z',
+            },
+          },
+        ],
+      },
     },
   })
   @ApiResponse({
     status: 500,
     description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error listing users' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
   })
   async findAll(
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number,
@@ -124,26 +211,61 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({
     summary: 'Find user by ID',
-    description: 'Returns data for a specific user',
+    description: `Retrieves detailed information about a specific user.
+    
+Notes:
+- The ID must be a valid UUID
+- The password is never included in the response
+- Returns 404 if the user doesn't exist`,
   })
   @ApiParam({
     name: 'id',
-    description: 'User ID',
+    description: 'User UUID',
     type: String,
     example: '550e8400-e29b-41d4-a716-446655440000',
+    required: true,
   })
   @ApiResponse({
     status: 200,
     description: 'User found successfully',
-    type: UserResponseSchema,
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(UserResponseSchema) },
+        {
+          example: {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'John Doe',
+            email: 'john@example.com',
+            createdAt: '2025-03-12T19:01:37.000Z',
+            updatedAt: '2025-03-12T19:01:37.000Z',
+          },
+        },
+      ],
+    },
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'User not found' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
   })
   @ApiResponse({
     status: 500,
     description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error finding user' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
   })
   async findOne(@Param('id') id: string): Promise<UserResponse> {
     try {
@@ -158,24 +280,45 @@ export class UsersController {
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Update user',
-    description: 'Updates data for a specific user. All fields are optional.',
+    summary: 'Update user data',
+    description: `Updates information for a specific user.
+    
+Features:
+- All fields are optional
+- Only provided fields will be updated
+- Email updates must be unique
+- Password will be re-hashed if provided
+    
+Notes:
+- Returns 404 if the user doesn't exist
+- Returns 422 if trying to use an email that's already taken
+- The password is never included in the response`,
   })
   @ApiParam({
     name: 'id',
-    description: 'User ID',
+    description: 'User UUID',
     type: String,
     example: '550e8400-e29b-41d4-a716-446655440000',
+    required: true,
   })
   @ApiBody({
     type: UpdateUserDto,
     description: 'User data to update',
     examples: {
-      default: {
+      fullUpdate: {
+        summary: 'Full update',
+        description: 'Example updating all available fields',
         value: {
-          name: 'John Doe',
-          email: 'john@example.com',
+          name: 'John Updated',
+          email: 'john.updated@example.com',
           password: 'newStrongP@ssw0rd',
+        },
+      },
+      partialUpdate: {
+        summary: 'Partial update',
+        description: 'Example updating only the name',
+        value: {
+          name: 'John Updated',
         },
       },
     },
@@ -183,19 +326,56 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
-    type: UserResponseSchema,
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(UserResponseSchema) },
+        {
+          example: {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'John Updated',
+            email: 'john.updated@example.com',
+            createdAt: '2025-03-12T19:01:37.000Z',
+            updatedAt: '2025-03-12T19:01:37.000Z',
+          },
+        },
+      ],
+    },
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'User not found' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
   })
   @ApiResponse({
     status: 422,
-    description: 'Email is already in use',
+    description: 'Validation error or email already in use',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 422 },
+        message: { type: 'string', example: 'Email is already in use' },
+        error: { type: 'string', example: 'Unprocessable Entity' },
+      },
+    },
   })
   @ApiResponse({
     status: 500,
     description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error updating user' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
   })
   async update(
     @Param('id') id: string,
@@ -215,13 +395,19 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete user',
-    description: 'Deletes a user from the system',
+    description: `Permanently removes a user from the system.
+    
+Notes:
+- This operation cannot be undone
+- Returns 404 if the user doesn't exist
+- Returns 204 (no content) on success`,
   })
   @ApiParam({
     name: 'id',
-    description: 'User ID',
+    description: 'User UUID',
     type: String,
     example: '550e8400-e29b-41d4-a716-446655440000',
+    required: true,
   })
   @ApiResponse({
     status: 204,
@@ -230,10 +416,26 @@ export class UsersController {
   @ApiResponse({
     status: 404,
     description: 'User not found',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'User not found' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
   })
   @ApiResponse({
     status: 500,
     description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error deleting user' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
   })
   async remove(@Param('id') id: string): Promise<void> {
     try {

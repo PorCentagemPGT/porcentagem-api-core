@@ -21,6 +21,16 @@ describe('UsersController', () => {
     updatedAt: new Date(),
   };
 
+  const mockCreateUserDto: CreateUserDto = {
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'strongP@ssw0rd',
+  };
+
+  const mockUpdateUserDto: UpdateUserDto = {
+    name: 'John Updated',
+  };
+
   const mockUsersService = {
     create: jest.fn(),
     findAll: jest.fn(),
@@ -49,18 +59,12 @@ describe('UsersController', () => {
   });
 
   describe('create', () => {
-    const createUserDto: CreateUserDto = {
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'strongP@ssw0rd',
-    };
-
     it('should create a user successfully', async () => {
       mockUsersService.create.mockResolvedValue(mockUser);
 
-      const result = await controller.create(createUserDto);
+      const result = await controller.create(mockCreateUserDto);
 
-      expect(service.create).toHaveBeenCalledWith(createUserDto);
+      expect(service.create).toHaveBeenCalledWith(mockCreateUserDto);
       expect(result).toEqual(mockUser);
     });
 
@@ -69,7 +73,7 @@ describe('UsersController', () => {
         new UnprocessableEntityException('Email is already in use'),
       );
 
-      await expect(controller.create(createUserDto)).rejects.toThrow(
+      await expect(controller.create(mockCreateUserDto)).rejects.toThrow(
         UnprocessableEntityException,
       );
     });
@@ -79,7 +83,7 @@ describe('UsersController', () => {
         new InternalServerErrorException('Error creating user'),
       );
 
-      await expect(controller.create(createUserDto)).rejects.toThrow(
+      await expect(controller.create(mockCreateUserDto)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
@@ -138,17 +142,13 @@ describe('UsersController', () => {
   });
 
   describe('update', () => {
-    const updateUserDto: UpdateUserDto = {
-      name: 'John Updated',
-    };
-
     it('should update a user successfully', async () => {
-      const updatedUser = { ...mockUser, name: updateUserDto.name };
+      const updatedUser = { ...mockUser, name: mockUpdateUserDto.name };
       mockUsersService.update.mockResolvedValue(updatedUser);
 
-      const result = await controller.update(mockUser.id, updateUserDto);
+      const result = await controller.update(mockUser.id, mockUpdateUserDto);
 
-      expect(service.update).toHaveBeenCalledWith(mockUser.id, updateUserDto);
+      expect(service.update).toHaveBeenCalledWith(mockUser.id, mockUpdateUserDto);
       expect(result).toEqual(updatedUser);
     });
 
@@ -157,19 +157,20 @@ describe('UsersController', () => {
         new NotFoundException('User not found'),
       );
 
-      await expect(
-        controller.update('non-existent-id', updateUserDto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.update('non-existent-id', mockUpdateUserDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw UnprocessableEntityException when email is already in use', async () => {
+      const updateUserDtoWithEmail = { email: 'existing@example.com' };
       mockUsersService.update.mockRejectedValue(
         new UnprocessableEntityException('Email is already in use'),
       );
 
-      await expect(
-        controller.update(mockUser.id, { email: 'existing@example.com' }),
-      ).rejects.toThrow(UnprocessableEntityException);
+      await expect(controller.update(mockUser.id, updateUserDtoWithEmail)).rejects.toThrow(
+        UnprocessableEntityException,
+      );
     });
 
     it('should throw InternalServerErrorException on unexpected error', async () => {
@@ -177,9 +178,9 @@ describe('UsersController', () => {
         new InternalServerErrorException('Error updating user'),
       );
 
-      await expect(
-        controller.update(mockUser.id, updateUserDto),
-      ).rejects.toThrow(InternalServerErrorException);
+      await expect(controller.update(mockUser.id, mockUpdateUserDto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
