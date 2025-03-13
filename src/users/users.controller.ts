@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -33,6 +34,8 @@ type UserResponse = Omit<User, 'password'>;
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
@@ -116,12 +119,24 @@ Notes:
     },
   })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
+    this.logger.log(
+      `Create user request started - email: ${createUserDto.email}`,
+    );
+
     try {
-      return await this.usersService.create(createUserDto);
+      const result = await this.usersService.create(createUserDto);
+      this.logger.log(`Create user request completed - userId: ${result.id}`);
+      return result;
     } catch (error: unknown) {
       if (error instanceof Error) {
+        this.logger.warn(
+          `Create user request failed - email: ${createUserDto.email}, error: ${error.message}`,
+        );
         throw error;
       }
+      this.logger.warn(
+        `Create user request failed - email: ${createUserDto.email}, error: Unknown error`,
+      );
       throw new InternalServerErrorException('Error creating user');
     }
   }
@@ -201,16 +216,27 @@ Notes:
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number,
     @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
   ): Promise<UserResponse[]> {
+    this.logger.log(
+      `List users request started - skip: ${skip}, take: ${take}`,
+    );
+
     try {
-      return await this.usersService.findAll(skip, take);
-    } catch {
+      const result = await this.usersService.findAll(skip, take);
+      this.logger.log(`List users request completed - count: ${result.length}`);
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.warn(`List users request failed - error: ${error.message}`);
+        throw error;
+      }
+      this.logger.warn('List users request failed - error: Unknown error');
       throw new InternalServerErrorException('Error listing users');
     }
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Find user by ID',
+    summary: 'Get a user by ID',
     description: `Retrieves detailed information about a specific user.
     
 Notes:
@@ -268,19 +294,29 @@ Notes:
     },
   })
   async findOne(@Param('id') id: string): Promise<UserResponse> {
+    this.logger.log(`Get user request started - userId: ${id}`);
+
     try {
-      return await this.usersService.findOne(id);
+      const result = await this.usersService.findOne(id);
+      this.logger.log(`Get user request completed - userId: ${id}`);
+      return result;
     } catch (error: unknown) {
       if (error instanceof Error) {
+        this.logger.warn(
+          `Get user request failed - userId: ${id}, error: ${error.message}`,
+        );
         throw error;
       }
-      throw new InternalServerErrorException('Error finding user');
+      this.logger.warn(
+        `Get user request failed - userId: ${id}, error: Unknown error`,
+      );
+      throw new InternalServerErrorException('Error getting user');
     }
   }
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Update user data',
+    summary: 'Update a user',
     description: `Updates information for a specific user.
     
 Features:
@@ -381,12 +417,22 @@ Notes:
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponse> {
+    this.logger.log(`Update user request started - userId: ${id}`);
+
     try {
-      return await this.usersService.update(id, updateUserDto);
+      const result = await this.usersService.update(id, updateUserDto);
+      this.logger.log(`Update user request completed - userId: ${id}`);
+      return result;
     } catch (error: unknown) {
       if (error instanceof Error) {
+        this.logger.warn(
+          `Update user request failed - userId: ${id}, error: ${error.message}`,
+        );
         throw error;
       }
+      this.logger.warn(
+        `Update user request failed - userId: ${id}, error: Unknown error`,
+      );
       throw new InternalServerErrorException('Error updating user');
     }
   }
@@ -394,7 +440,7 @@ Notes:
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Delete user',
+    summary: 'Delete a user',
     description: `Permanently removes a user from the system.
     
 Notes:
@@ -438,12 +484,21 @@ Notes:
     },
   })
   async remove(@Param('id') id: string): Promise<void> {
+    this.logger.log(`Delete user request started - userId: ${id}`);
+
     try {
       await this.usersService.remove(id);
+      this.logger.log(`Delete user request completed - userId: ${id}`);
     } catch (error: unknown) {
       if (error instanceof Error) {
+        this.logger.warn(
+          `Delete user request failed - userId: ${id}, error: ${error.message}`,
+        );
         throw error;
       }
+      this.logger.warn(
+        `Delete user request failed - userId: ${id}, error: Unknown error`,
+      );
       throw new InternalServerErrorException('Error deleting user');
     }
   }
