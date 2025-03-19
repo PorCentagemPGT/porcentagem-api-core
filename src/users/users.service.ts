@@ -134,6 +134,40 @@ export class UsersService {
     }
   }
 
+  async findOneByEmail(email: string): Promise<Omit<User, 'password'>> {
+    this.logger.log(`Get user operation started - email: ${email}`);
+    try {
+      const user = await this.database.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!user) {
+        this.logger.warn(
+          `Get user operation failed - email: ${email}, error: User not found`,
+        );
+        throw new NotFoundException(`User with email ${email} not found`);
+      }
+
+      this.logger.log(`Get user operation completed - email: ${email}`);
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.warn(
+        `Get user operation failed - email: ${email}, error: Database error`,
+      );
+      throw new InternalServerErrorException('Error finding user');
+    }
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,

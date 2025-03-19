@@ -314,6 +314,86 @@ Notes:
     }
   }
 
+  @Get('/email/:email')
+  @ApiOperation({
+    summary: 'Get a user by email',
+    description: `Retrieves detailed information about a specific user.
+    
+Notes:
+- The email must be a valid email address
+- The password is never included in the response
+- Returns 404 if the user doesn't exist`,
+  })
+  @ApiParam({
+    name: 'email',
+    description: 'User email',
+    type: String,
+    example: 'john@example.com',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User found successfully',
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(UserResponseSchema) },
+        {
+          example: {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            name: 'John Doe',
+            email: 'john@example.com',
+            createdAt: '2025-03-12T19:01:37.000Z',
+            updatedAt: '2025-03-12T19:01:37.000Z',
+          },
+        },
+      ],
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: 'User not found' },
+        error: { type: 'string', example: 'Not Found' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: { type: 'string', example: 'Error finding user' },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
+  })
+  async findOneByEmail(@Param('email') email: string): Promise<UserResponse> {
+    this.logger.log(`Get user request started - email: ${email}`);
+
+    try {
+      const result = await this.usersService.findOneByEmail(email);
+      this.logger.log(`Get user request completed - email: ${email}`);
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.warn(
+          `Get user request failed - email: ${email}, error: ${error.message}`,
+        );
+        throw error;
+      }
+      this.logger.warn(
+        `Get user request failed - email: ${email}, error: Unknown error`,
+      );
+      throw new InternalServerErrorException('Error getting user');
+    }
+  }
+
   @Patch(':id')
   @ApiOperation({
     summary: 'Update a user',
