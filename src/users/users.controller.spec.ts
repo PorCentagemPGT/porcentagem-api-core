@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -148,7 +149,10 @@ describe('UsersController', () => {
 
       const result = await controller.update(mockUser.id, mockUpdateUserDto);
 
-      expect(service.update).toHaveBeenCalledWith(mockUser.id, mockUpdateUserDto);
+      expect(service.update).toHaveBeenCalledWith(
+        mockUser.id,
+        mockUpdateUserDto,
+      );
       expect(result).toEqual(updatedUser);
     });
 
@@ -157,9 +161,9 @@ describe('UsersController', () => {
         new NotFoundException('User not found'),
       );
 
-      await expect(controller.update('non-existent-id', mockUpdateUserDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.update('non-existent-id', mockUpdateUserDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw UnprocessableEntityException when email is already in use', async () => {
@@ -168,9 +172,9 @@ describe('UsersController', () => {
         new UnprocessableEntityException('Email is already in use'),
       );
 
-      await expect(controller.update(mockUser.id, updateUserDtoWithEmail)).rejects.toThrow(
-        UnprocessableEntityException,
-      );
+      await expect(
+        controller.update(mockUser.id, updateUserDtoWithEmail),
+      ).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should throw InternalServerErrorException on unexpected error', async () => {
@@ -178,9 +182,9 @@ describe('UsersController', () => {
         new InternalServerErrorException('Error updating user'),
       );
 
-      await expect(controller.update(mockUser.id, mockUpdateUserDto)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(
+        controller.update(mockUser.id, mockUpdateUserDto),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
