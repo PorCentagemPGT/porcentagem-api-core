@@ -2,7 +2,7 @@ name: CI/CD Deploy to Azure
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Variáveis de ambiente globais:
-      ACR_NAME: PorCentagem                     # Nome do Azure Container Registry (sem sufixo .azurecr.io)
-      ACR_LOGIN_SERVER: porcentagem.azurecr.io  # URL do login no ACR
-      AZURE_RESOURCE_GROUP: Porcentagem       # Nome do Resource Group no Azure onde está o Web App
-      APP_NAME: porcentagem-api-core            # Nome do Web App no Azure (e do container/imagem)
+      ACR_NAME: PorCentagem # Nome do Azure Container Registry (sem sufixo .azurecr.io)
+      ACR_LOGIN_SERVER: porcentagem.azurecr.io # URL do login no ACR
+      AZURE_RESOURCE_GROUP: Porcentagem # Nome do Resource Group no Azure onde está o Web App
+      APP_NAME: porcentagem-api-core # Nome do Web App no Azure (e do container/imagem)
 
     steps:
       # 1. Checkout do código do repositório
@@ -25,7 +25,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Usa Node.js v18 (LTS)
+          node-version: 18 # Usa Node.js v18 (LTS)
 
       # 3. Instalar dependências do projeto
       - name: Instalar dependências
@@ -64,9 +64,10 @@ jobs:
       - name: Configurar App Settings do Azure Web App
         run: |
           az webapp config appsettings set --resource-group $AZURE_RESOURCE_GROUP --name $APP_NAME --settings \
-            'DATABASE_URL=${{ secrets.DATABASE_URL }}'
+            'DATABASE_URL=${{ secrets.DATABASE_URL }}' \
+            'PORT=${{ secrets.PORT }}'
         # Define as configurações de ambiente do aplicativo no Azure (equivalentes a variáveis de ambiente no contêiner).
-      
+
       # 10. Deploy da imagem Docker no Web App do Azure
       - name: Deploy para Azure Web App (Container)
         uses: azure/webapps-deploy@v2
