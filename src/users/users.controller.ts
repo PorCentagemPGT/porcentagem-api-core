@@ -26,6 +26,7 @@ import {
 import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ValidateCredentialsDto } from './dto/validate-credentials.dto';
 import { UsersService } from './users.service';
 import { UserResponseSchema } from './schemas/user-response.schema';
 
@@ -392,6 +393,37 @@ Notes:
       );
       throw new InternalServerErrorException('Error getting user');
     }
+  }
+
+  @Post('validate')
+  @ApiOperation({
+    summary: 'Validate user credentials',
+    description:
+      'Validates user email and password. Returns user data if valid.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Credentials are valid',
+    type: UserResponseSchema,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials',
+  })
+  async validateCredentials(
+    @Body() signInDto: ValidateCredentialsDto,
+  ): Promise<UserResponseSchema> {
+    this.logger.log(
+      `Validate credentials request started - email: ${signInDto.email}`,
+    );
+
+    const result = await this.usersService.validateCredentials(signInDto);
+
+    this.logger.log(
+      `Validate credentials request completed - userId: ${result.id}`,
+    );
+
+    return result;
   }
 
   @Patch(':id')
