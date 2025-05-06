@@ -260,11 +260,17 @@ export class UsersService {
       },
     });
 
+    this.logger.log(`Looked for user in database`);
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    this.logger.log(`Found user in database`);
+
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+
+    this.logger.log(`Checked password`);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
