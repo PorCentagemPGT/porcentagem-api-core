@@ -268,12 +268,19 @@ export class UsersService {
 
     this.logger.log(`Found user in database`);
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    try {
+      this.logger.log(`Starting password comparison`);
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+      this.logger.log(`Password comparison completed`);
 
-    this.logger.log(`Checked password`);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error comparing passwords: ${errorMessage}`);
+      throw new InternalServerErrorException('Error validating credentials');
     }
 
     this.logger.log(`Validate credentials completed - userId: ${user.id}`);
