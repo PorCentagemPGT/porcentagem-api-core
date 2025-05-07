@@ -23,6 +23,7 @@ model User {
   bankAccount BankAccount[]
 
   @@index([email])
+  @@map("users")
 }
 
 model Category {
@@ -35,6 +36,8 @@ model Category {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   transaction Transaction[]
+
+  @@map("categories")
 }
 
 model Transaction {
@@ -51,6 +54,7 @@ model Transaction {
   bankAccount BankAccount @relation(fields: [bankAccountId], references: [id])
 
   @@index([categoryId])
+  @@map("transactions")
 }
 
 model BankAccount {
@@ -65,4 +69,6 @@ model BankAccount {
 
   transaction Transaction[]
   user        User          @relation(fields: [userId], references: [id])
+
+  @@map("bank_accounts")
 }
