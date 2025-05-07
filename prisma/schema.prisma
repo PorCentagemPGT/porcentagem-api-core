@@ -14,12 +14,55 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String        @id @default(uuid())
+  email       String        @unique
+  name        String
+  password    String
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  bankAccount BankAccount[]
 
   @@index([email])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  color       String
+  icon        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  transaction Transaction[]
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  bankAccountId String
+  date          DateTime
+  amount        Float
+  type          String
+  categoryId    String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  category    Category    @relation(fields: [categoryId], references: [id])
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([categoryId])
+}
+
+model BankAccount {
+  id               String   @id @default(uuid())
+  userId           String
+  name             String
+  apiToken         String
+  accountStatus    String
+  connectionStatus String
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  transaction Transaction[]
+  user        User          @relation(fields: [userId], references: [id])
 }
