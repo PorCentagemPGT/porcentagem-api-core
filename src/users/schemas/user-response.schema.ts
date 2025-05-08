@@ -20,6 +20,12 @@ export class UserResponseSchema {
   email: string;
 
   @ApiProperty({
+    description: 'User password',
+    example: 'strongP@ssw0rd',
+  })
+  password: string;
+
+  @ApiProperty({
     description: 'User creation date',
     example: '2025-03-10T13:24:18.000Z',
   })

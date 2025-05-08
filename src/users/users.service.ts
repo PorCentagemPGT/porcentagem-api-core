@@ -135,7 +135,7 @@ export class UsersService {
     }
   }
 
-  async findOneByEmail(email: string): Promise<Omit<User, 'password'>> {
+  async findOneByEmail(email: string): Promise<UserResponseSchema> {
     this.logger.log(`Get user operation started - email: ${email}`);
     try {
       const user = await this.database.user.findUnique({
@@ -144,6 +144,7 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
+          password: true,
           created_at: true,
           updated_at: true,
         },
