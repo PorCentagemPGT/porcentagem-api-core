@@ -4,12 +4,10 @@ import {
   NotFoundException,
   UnprocessableEntityException,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ValidateCredentialsDto } from './dto/validate-credentials.dto';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -241,52 +239,5 @@ export class UsersService {
       );
       throw new InternalServerErrorException('Error deleting user');
     }
-  }
-
-  async validateCredentials(
-    dto: ValidateCredentialsDto,
-  ): Promise<UserResponseSchema> {
-    this.logger.log(`Validate credentials started - email: ${dto.email}`);
-
-    const user = await this.database.user.findUnique({
-      where: { email: dto.email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        password: true,
-        created_at: true,
-        updated_at: true,
-      },
-    });
-
-    this.logger.log(`Looked for user in database`);
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    this.logger.log(`Found user in database`);
-
-    try {
-      this.logger.log(`Starting password comparison`);
-      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-      this.logger.log(`Password comparison completed`);
-
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(`Error comparing passwords: ${errorMessage}`);
-      throw new InternalServerErrorException('Error validating credentials');
-    }
-
-    this.logger.log(`Validate credentials completed - userId: ${user.id}`);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
   }
 }
