@@ -23,11 +23,11 @@ export class UserResponseSchema {
     description: 'User creation date',
     example: '2025-03-10T13:24:18.000Z',
   })
-  createdAt: Date;
+  created_at: Date;
 
   @ApiProperty({
     description: 'User last update date',
     example: '2025-03-10T13:24:18.000Z',
   })
-  updatedAt: Date;
+  updated_at: Date;
 }

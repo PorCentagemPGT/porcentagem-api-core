@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,9 +12,9 @@ model User {
   email       String        @unique
   name        String
   password    String
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  bankAccount BankAccount[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  BankAccount BankAccount[]
 
   @@index([email])
   @@map("users")

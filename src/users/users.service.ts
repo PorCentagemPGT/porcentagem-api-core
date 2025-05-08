@@ -47,8 +47,8 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
-          createdAt: true,
-          updatedAt: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
@@ -89,8 +89,8 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
-          createdAt: true,
-          updatedAt: true,
+          created_at: true,
+          updated_at: true,
         },
       });
       this.logger.log(
@@ -112,8 +112,8 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
-          createdAt: true,
-          updatedAt: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
@@ -146,8 +146,8 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
-          createdAt: true,
-          updatedAt: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
@@ -193,8 +193,8 @@ export class UsersService {
           id: true,
           name: true,
           email: true,
-          createdAt: true,
-          updatedAt: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
@@ -255,8 +255,8 @@ export class UsersService {
         email: true,
         name: true,
         password: true,
-        createdAt: true,
-        updatedAt: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
