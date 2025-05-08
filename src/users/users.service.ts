@@ -9,7 +9,6 @@ import { DatabaseService } from '../database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserResponseSchema } from './schemas/user-response.schema';
 
@@ -19,28 +18,11 @@ export class UsersService {
 
   constructor(private readonly database: DatabaseService) {}
 
-  private async hashPassword(password: string): Promise<string> {
-    this.logger.log('Password hashing started');
-    try {
-      const result = await bcrypt.hash(password, 10);
-      this.logger.log('Password hashing completed');
-      return result;
-    } catch {
-      this.logger.warn('Password hashing failed');
-      throw new InternalServerErrorException('Error hashing password');
-    }
-  }
-
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     this.logger.log(`User creation started - email: ${createUserDto.email}`);
     try {
-      const hashedPassword = await this.hashPassword(createUserDto.password);
-
       const result = await this.database.user.create({
-        data: {
-          ...createUserDto,
-          password: hashedPassword,
-        },
+        data: createUserDto,
         select: {
           id: true,
           name: true,
@@ -182,7 +164,7 @@ export class UsersService {
       const data: Partial<User> = { ...updateUserDto };
 
       if (updateUserDto.password) {
-        data.password = await this.hashPassword(updateUserDto.password);
+        data.password = updateUserDto.password;
       }
 
       const result = await this.database.user.update({
