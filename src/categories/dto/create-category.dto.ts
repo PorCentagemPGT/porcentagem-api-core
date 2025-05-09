@@ -21,13 +21,6 @@ export class CreateCategoryDto {
   color: string;
 
   @ApiProperty({
-    description: 'Icon name or reference for the category',
-    example: 'car',
-  })
-  @IsString({ message: 'Icon must be a string' })
-  icon: string;
-
-  @ApiProperty({
     description: 'Description of the category',
     example: 'Despesas relacionadas a transporte diário',
   })

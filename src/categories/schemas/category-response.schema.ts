@@ -14,6 +14,12 @@ export class CategoryResponseSchema {
   name: string;
 
   @ApiProperty({
+    description: 'Category color in hexadecimal format',
+    example: '#FF5733',
+  })
+  color: string;
+
+  @ApiProperty({
     description: 'Date when the category was created',
     example: '2025-03-10T13:24:18.000Z',
   })
