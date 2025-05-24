@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   Logger,
@@ -17,7 +19,9 @@ export class TransactionsService {
 
   constructor(private readonly database: DatabaseService) {}
 
-  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+  ): Promise<Transaction> {
     this.logger.log(
       `Transaction creation started - amount: ${createTransactionDto.amount}, type: ${createTransactionDto.type}`,
     );
@@ -46,7 +50,9 @@ export class TransactionsService {
       }
 
       if (error instanceof Error) {
-        this.logger.error(`Transaction creation failed - error: ${error.message}`);
+        this.logger.error(
+          `Transaction creation failed - error: ${error.message}`,
+        );
       } else {
         this.logger.error(`Transaction creation failed - unknown error`);
       }
@@ -84,7 +90,11 @@ export class TransactionsService {
     }
   }
 
-  async findByUserId(userId: string, skip = 0, take = 10): Promise<Transaction[]> {
+  async findByUserId(
+    userId: string,
+    skip = 0,
+    take = 10,
+  ): Promise<Transaction[]> {
     this.logger.log(
       `Find transactions by user ID started - userId: ${userId}, skip: ${skip}, take: ${take}`,
     );
@@ -101,7 +111,7 @@ export class TransactionsService {
       }
 
       // Get bank account IDs
-      const bankAccountIds = bankAccounts.map(account => account.id);
+      const bankAccountIds = bankAccounts.map((account) => account.id);
 
       // Find transactions for these bank accounts
       const transactions = await this.database.transaction.findMany({
@@ -130,9 +140,13 @@ export class TransactionsService {
           `Find transactions by user ID failed - userId: ${userId}, error: ${error.message}`,
         );
       } else {
-        this.logger.error(`Find transactions by user ID failed - userId: ${userId}, unknown error`);
+        this.logger.error(
+          `Find transactions by user ID failed - userId: ${userId}, unknown error`,
+        );
       }
-      throw new InternalServerErrorException('Error finding transactions by user ID');
+      throw new InternalServerErrorException(
+        'Error finding transactions by user ID',
+      );
     }
   }
 
